@@ -1,0 +1,66 @@
+.calendar-mini-asl {
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 10px;
+
+  &-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  &-controls button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: #5f6368;
+    font-size: 1rem;
+  }
+
+  &-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    gap: 2px;
+  }
+
+  &-day,
+  &-fw-bold {
+    font-size: 12px;
+    height: 28px;
+    width: 28px;
+    line-height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  &-day:hover {
+    background-color: #f1f3f4;
+  }
+
+  /* Día seleccionado */
+  &-active-day {
+    background-color: #1a73e8;
+    color: white;
+    font-weight: 600;
+  }
+
+  /* Hoy */
+  &-current-day {
+    border: 1px solid #1a73e8;
+    color: #1a73e8;
+    font-weight: bold;
+  }
+
+  /* ✅ Hoy y seleccionado al mismo tiempo */
+  &-active-day.calendar-mini-asl-current-day {
+    background-color: #1a73e8;
+    color: #fff; /* fuerza texto blanco */
+    font-weight: 600;
+    border: none; /* quita borde */
+  }
+}

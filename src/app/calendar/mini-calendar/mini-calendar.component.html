@@ -1,0 +1,32 @@
+<div class="calendar-mini-asl">
+  <div class="calendar-mini-asl-header">
+    <h6>{{ monthYear }}</h6>
+    <div class="calendar-mini-asl-controls">
+      <button (click)="prevMonth()"><i class="fas fa-chevron-left"></i></button>
+      <button (click)="nextMonth()"><i class="fas fa-chevron-right"></i></button>
+    </div>
+  </div>
+
+  <div class="calendar-mini-asl-days">
+    <div class="calendar-mini-asl-fw-bold">D</div>
+    <div class="calendar-mini-asl-fw-bold">L</div>
+    <div class="calendar-mini-asl-fw-bold">M</div>
+    <div class="calendar-mini-asl-fw-bold">M</div>
+    <div class="calendar-mini-asl-fw-bold">J</div>
+    <div class="calendar-mini-asl-fw-bold">V</div>
+    <div class="calendar-mini-asl-fw-bold">S</div>
+  </div>
+
+  <div class="calendar-mini-asl-days">
+    <ng-container *ngFor="let day of daysInMonth">
+      <div *ngIf="day"
+        class="calendar-mini-asl-day"
+        [class.calendar-mini-asl-current-day]="isToday(day)"
+        [class.calendar-mini-asl-active-day]="isActive(day)"
+        (click)="selectDay(day)">
+        {{ day }}
+      </div>
+      <div *ngIf="!day"></div>
+    </ng-container>
+  </div>
+</div>

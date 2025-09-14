@@ -1,0 +1,243 @@
+<div class="calendar-container">
+  <div class="calendar-header">
+    <button (click)="goToToday()">Hoy</button>
+    <div class="navigation-icons">
+      <i class="fas fa-chevron-left" (click)="prevWeek()"></i>
+      <i class="fas fa-chevron-right" (click)="nextWeek()"></i>
+    </div>
+    <h3>{{ weekLabel }}</h3>
+  </div>
+
+  <div class="calendar-body">
+    <table class="calendar-table">
+      <thead>
+        <tr>
+          <th class="time-column"></th>
+          <th *ngFor="let day of weekDays" [class.today]="day.toDateString() === today.toDateString()">
+            {{ day | date:'EEE':'':'es' | uppercase }}<br>
+            <span class="date">{{ day.getDate() }}</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let slot of timeSlots; let row = index">
+          <!-- columna de horas -->
+          <td class="time-column">{{ slot.label }}</td>
+
+          <!-- columnas de días -->
+          <td *ngFor="let day of weekDays; let col = index" class="calendar-cell" (click)="openPopup($event, row, col)">
+
+            <!-- SOLO en la PRIMERA fila dibujamos los eventos del día -->
+            <ng-container *ngIf="row === 0">
+              <div class="events-container">
+                <div *ngFor="let ev of getEventsForDay(day)" class="event-absolute" [style.top.px]="getEventTop(ev)"
+                  [style.height.px]="getEventHeight(ev)"
+                  [style.background]="ev.type === 'cita' ? ev.tag_color || '#004c80' : '#edeff2'"
+                  [style.color]="ev.type === 'cita' ? '#fff' : '#444'" (mouseenter)="openDetailPopup(ev, $event)">
+
+                  <!-- si es bloqueo, ícono de candado -->
+                  <i *ngIf="ev.type === 'bloqueo'" class="fas fa-lock me-1"></i>
+
+                  <!-- si es cita nueva -->
+                  <span *ngIf="ev.type === 'cita' && ev.consultation_count === 0 && ev.id !== 0" class="badge-new">
+                    NEW
+                  </span>
+
+                  {{ ev.title }}
+                </div>
+              </div>
+
+
+            </ng-container>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Popup -->
+  <div *ngIf="showPopup" class="event-popup" [style.top.px]="popupPosition.y" [style.left.px]="popupPosition.x">
+
+    <div class="popup-header" (mousedown)="onDragStart($event)">
+      <h6>Añadir evento</h6>
+      <button (click)="closePopup()">&times;</button>
+    </div>
+
+    <!-- Tabs -->
+    <div class="popup-tabs">
+      <button [class.active]="activeTab === 'cita'" (click)="activeTab = 'cita'">Cita</button>
+      <button [class.active]="activeTab === 'bloqueo'" (click)="activeTab = 'bloqueo'">Bloqueo</button>
+    </div>
+
+    <!-- TAB CITA -->
+    <div *ngIf="activeTab === 'cita'">
+      <!-- Buscar o añadir paciente -->
+      <div class="form-group patient-group">
+        <label for="paciente">Paciente</label>
+        <div class="input-row">
+          <input id="paciente" type="text" placeholder="Buscar por nombre o teléfono...">
+          <button type="button" class="btn-link" (click)="toggleCreatePatient($event)">+ Añadir</button>
+        </div>
+      </div>
+
+      <!-- Nuevo paciente -->
+      <div *ngIf="showCreatePatient" class="create-patient">
+        <h6>Nuevo paciente</h6>
+
+        <div class="input-row">
+          <div class="form-group">
+            <label>Nombre completo *</label>
+            <input type="text" placeholder="Escribe el nombre">
+          </div>
+          <div class="form-group">
+            <label>F. Nacimiento *</label>
+            <input type="date">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Sexo *</label>
+          <div class="radio-group">
+            <label><input type="radio" name="sexo" value="Hombre"> Hombre</label>
+            <label><input type="radio" name="sexo" value="Mujer"> Mujer</label>
+          </div>
+        </div>
+
+        <div class="input-row">
+          <div class="form-group">
+            <label>Correo electrónico</label>
+            <input type="email" placeholder="ejemplo@correo.com">
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="tel" placeholder="10 dígitos">
+          </div>
+        </div>
+
+        <button type="button" class="btn-link" (click)="toggleCreatePatient($event)">Cerrar</button>
+      </div>
+
+      <!-- Detalles de la cita -->
+      <h6>Detalles de la cita</h6>
+      <div class="input-row">
+        <div class="form-group">
+          <label>Día</label>
+          <input type="date" class="cita-date" [value]="selectedDate ? (selectedDate | date:'yyyy-MM-dd') : ''">
+        </div>
+        <div class="form-group">
+          <label>Hora</label>
+          <input type="time" class="cita-time" [value]="selectedDate ? (selectedDate | date:'HH:mm') : ''">
+        </div>
+      </div>
+
+      <div class="input-row">
+        <div class="form-group">
+          <label>Duración</label>
+          <input type="text" value="30 min">
+        </div>
+        <div class="form-group">
+          <label>Etiqueta</label>
+          <input type="text" placeholder="Ej. PRE-CIRUGIA">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Comentarios</label>
+        <textarea></textarea>
+      </div>
+    </div>
+
+    <!-- TAB BLOQUEO -->
+    <div *ngIf="activeTab === 'bloqueo'">
+      <div class="form-group">
+        <label>Nombre bloqueo *</label>
+        <input type="text" placeholder="Ej. Cirugía">
+      </div>
+
+      <div class="form-group">
+        <label>Fecha inicio *</label>
+        <div class="input-row">
+          <input type="date" class="bloqueo-start-date"
+            [value]="selectedDate ? (selectedDate | date:'yyyy-MM-dd') : ''">
+          <input type="time" class="bloqueo-start-time" [value]="selectedDate ? (selectedDate | date:'HH:mm') : ''">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Fecha fin *</label>
+        <div class="input-row">
+          <input type="date" class="bloqueo-end-date" [value]="endDateValue ? (endDateValue | date:'yyyy-MM-dd') : ''">
+          <input type="time" class="bloqueo-end-time" [value]="endDateValue ? (endDateValue | date:'HH:mm') : ''">
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button class="btn-cancel" (click)="closePopup()">Cancelar</button>
+      <button class="btn-save" (click)="saveEvent('Nuevo evento', activeTab)">Guardar</button>
+    </div>
+  </div>
+
+  <div *ngIf="detailPopupVisible && selectedEvent" class="detail-popup" [style.top.px]="detailPopupPosition.y"
+    [style.left.px]="detailPopupPosition.x" (mouseleave)="closeDetailPopup()">
+
+    <!-- ====== CITA ====== -->
+    <ng-container *ngIf="selectedEvent.type === 'cita'">
+      <h6>{{ selectedEvent.name_patient }}</h6>
+
+      <p>
+        <i class="fas fa-envelope"></i> {{ selectedEvent.email_patient || 'Sin correo' }} <br>
+        <i class="fas fa-phone"></i> {{ selectedEvent.phone_patient || 'Sin teléfono' }} <br>
+        <i class="fas fa-id-card"></i> Folio: {{ selectedEvent.paciente }}
+      </p>
+
+      <strong>Detalles de la Cita:</strong><br>
+      <i class="fas fa-hashtag"></i> {{ selectedEvent.id }} <br>
+      <i class="fas fa-tag"></i> {{ selectedEvent.tag_name || 'Sin etiqueta' }} <br>
+      <i class="fas fa-calendar-alt"></i> <span [innerHTML]="selectedEvent.formatted_date_time"></span><br><br>
+      <i class="fas fa-hospital"></i> {{ selectedEvent.name_office }} <br>
+      <i class="fas fa-map-marker-alt"></i> {{ selectedEvent.address_office }}
+
+      <!-- Acciones -->
+      <div class="actions">
+        <button class="btn-action call" title="Llamar" (click)="llamarPaciente(selectedEvent)">
+          <i class="fas fa-phone"></i>
+        </button>
+        <button class="btn-action whatsapp" title="WhatsApp" (click)="whatsappPaciente(selectedEvent)">
+          <i class="fab fa-whatsapp"></i>
+        </button>
+        <button class="btn-action expediente" title="Expediente" (click)="abrirExpediente(selectedEvent)">
+          <i class="fas fa-folder-plus"></i>
+        </button>
+        <button class="btn-action edit" (click)="editEvent(selectedEvent)" title="Editar">
+          <i class="fas fa-edit"></i>
+        </button>
+        <button class="btn-action delete" (click)="deleteEvent(selectedEvent)" title="Eliminar">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+    </ng-container>
+
+    <!-- ====== BLOQUEO ====== -->
+    <ng-container *ngIf="selectedEvent.type === 'bloqueo'">
+      <h6><i class="fas fa-lock"></i> {{ selectedEvent.title }}</h6>
+      <p>
+        <i class="fas fa-calendar-alt"></i> Inicio: {{ selectedEvent.start | date:'fullDate' }}
+        {{ selectedEvent.start | date:'shortTime' }} <br>
+        <i class="fas fa-calendar-alt"></i> Fin: {{ selectedEvent.end | date:'fullDate' }}
+        {{ selectedEvent.end | date:'shortTime' }}
+      </p>
+
+      <!-- Acciones -->
+      <div class="actions">
+        <button class="btn-action edit" (click)="editEvent(selectedEvent)" title="Editar">
+          <i class="fas fa-edit"></i>
+        </button>
+        <button class="btn-action delete" (click)="deleteEvent(selectedEvent)" title="Eliminar">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </ng-container>
+  </div>

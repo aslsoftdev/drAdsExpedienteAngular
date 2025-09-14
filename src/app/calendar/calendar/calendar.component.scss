@@ -1,0 +1,189 @@
+/* --- Botón menú hamburguesa --- */
+.menu-toggle {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  font-size: 1.6rem;
+  cursor: pointer;
+  color: #004c80;
+  z-index: 2200;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 40px;
+  height: 40px;
+
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: background 0.2s, color 0.2s;
+
+  i {
+    font-size: 1.4rem;
+    line-height: 40px;
+  }
+
+  &:hover {
+    background: rgba(26, 115, 232, 0.08);
+    /* azul tenue */
+    color: #004c80;
+    /* azul institucional */
+  }
+}
+
+
+/* --- Sidebar --- */
+.mini-sidebar {
+  position: fixed;
+  top: 0;
+  left: -240px;
+  width: 240px;
+  height: 100%;
+  background: #fff;
+  border-right: 1px solid #e0e0e0;
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.1);
+  transition: left 0.3s ease;
+  z-index: 2100;
+  display: flex;
+  flex-direction: column;
+
+  &.show {
+    left: 0;
+  }
+
+  .sidebar-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px 0;
+    border-bottom: 1px solid #eee;
+
+    img {
+      max-width: 50px;
+    }
+  }
+
+  .sidebar-menu {
+    list-style: none;
+    margin: 0;
+    padding: 12px;
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      cursor: pointer;
+      color: #5f6368;
+      font-size: 0.95rem;
+      font-weight: 500;
+      border-radius: 10px;
+      margin: 4px 0;
+      transition: background 0.2s, color 0.2s;
+
+      i {
+        font-size: 1.2rem;
+        min-width: 24px;
+        text-align: center;
+      }
+
+      &:hover {
+        background: rgba(0, 76, 128, 0.06);
+        color: #004c80;
+      }
+    }
+  }
+}
+
+
+.sidebar-menu li a.menu-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  color: #5f6368;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-decoration: none;
+  /* 🔥 quita el subrayado */
+  transition: background 0.2s, color 0.2s;
+}
+
+.sidebar-menu li a.menu-link:hover {
+  background: #f1f3f4;
+  color: #004c80;
+}
+
+.sidebar-menu li a.menu-link.active {
+  color: #004c80;
+}
+
+
+.appointments {
+  margin-top: 20px;
+  padding: 0 16px;
+
+  h6 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #5f6368;
+    margin-bottom: 12px;
+  }
+
+  .appointment-card {
+    background: #fff;
+    border-left: 4px solid #004c80;
+    /* franja institucional */
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+
+    h6 {
+      font-size: 1rem;
+      margin: 0 0 8px 0;
+      font-weight: 600;
+      color: #202124;
+
+      .badge {
+        font-size: 0.7rem;
+        padding: 4px 10px;
+        border-radius: 20px;
+        vertical-align: middle;
+        margin-left: 6px;
+
+        &.confirmada {
+          background: #28a745;
+          /* verde fuerte */
+          color: #fff;
+          font-weight: 600;
+        }
+
+        &.pendiente {
+          background: #fbbc05;
+          /* amarillo Google */
+          color: #202124;
+        }
+
+        &.cancelada {
+          background: #ea4335;
+          /* rojo Google */
+          color: #fff;
+        }
+      }
+    }
+
+    small {
+      font-size: 0.85rem;
+      color: #5f6368;
+    }
+  }
+}

@@ -1,0 +1,32 @@
+body {
+  font-family: "Poppins", sans-serif !important;
+  margin: 0;
+  padding: 0;
+  background: #fff;
+  color: #202124;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.main-layout {
+  display: flex;
+  height: 100%;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 280px;
+  border-right: 1px solid #e0e0e0;
+  background: #fff;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  height: 100%;
+  flex-shrink: 0;
+}
+
+.sidebar .logo {
+  text-align: center;
+  margin-bottom: 15px;
+}

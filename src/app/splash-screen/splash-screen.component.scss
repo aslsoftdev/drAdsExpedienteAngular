@@ -1,0 +1,92 @@
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(270deg, #004c80, #0a2647, #4caf50);
+  background-size: 600% 600%;
+  animation: gradientMove 10s ease infinite, fadeOut 0.5s ease forwards;
+  animation-delay: 0s, 1.5s; /* ⏳ splash dura 1.5s y luego desaparece */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.logo-container {
+  text-align: center;
+  color: #fff;
+  animation: fadeInUp 1s ease;
+}
+
+.logo {
+  width: 120px;
+  margin-bottom: 20px;
+  animation: bounce 2s infinite;
+}
+
+.title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  animation: fadeInUp 1s ease;
+}
+
+.loading-text {
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+}
+
+.dots::after {
+  content: '...';
+  animation: dots 1.5s steps(4, end) infinite;
+}
+
+.progress-bar {
+  width: 220px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+.progress {
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #4caf50, #a5d6a7);
+  animation: progressAnim 1.5s forwards;
+}
+
+/* 🔥 Animaciones */
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(30px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes dots {
+  0% { content: ''; }
+  25% { content: '.'; }
+  50% { content: '..'; }
+  75% { content: '...'; }
+}
+
+@keyframes progressAnim {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes fadeOut {
+  to { opacity: 0; visibility: hidden; }
+}
