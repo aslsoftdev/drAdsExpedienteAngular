@@ -1,0 +1,128 @@
+<!-- Botón hamburguesa -->
+<div class="menu-toggle" (click)="toggleMenu()">
+  <i class="fas fa-bars"></i>
+</div>
+
+<!-- Sidebar desplegable -->
+<nav class="mini-sidebar" [class.show]="menuOpen">
+  <div class="sidebar-header">
+    <img src="assets/isologo.png" alt="Logo mini">
+  </div>
+
+  <ul class="sidebar-menu">
+    <li>
+      <a href="/admin/patients" class="menu-link active">
+        <i class="fas fa-calendar"></i><span>Calendario</span>
+      </a>
+    </li>
+    <li>
+      <a href="/admin/patients" class="menu-link">
+        <i class="fas fa-user"></i><span>Pacientes</span>
+      </a>
+    </li>
+    <li>
+      <a href="/admin/notifications" class="menu-link">
+        <i class="fas fa-bell"></i><span>Notificaciones</span>
+      </a>
+    </li>
+    <li>
+      <a href="/admin/settings" class="menu-link">
+        <i class="fas fa-cog"></i><span>Configuración</span>
+      </a>
+    </li>
+    <li>
+      <a href="/admin/about" class="menu-link">
+        <i class="fas fa-info-circle"></i><span>Ayuda</span>
+      </a>
+    </li>
+    <li>
+      <a (click)="logout()" class="menu-link" style="cursor: pointer;">
+        <i class="fas fa-sign-out-alt"></i><span>Salir</span>
+      </a>
+    </li>
+
+  </ul>
+
+</nav>
+
+<div class="main-layout">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="logo">
+      <img src="assets/isologo.png" height="70" alt="Logo ASL">
+    </div>
+
+    <!-- Mini calendario -->
+    <app-mini-calendar [selectedDate]="selectedDate" (dateSelected)="onDateSelected($event)">
+    </app-mini-calendar>
+
+    <!-- Próximas citas -->
+    <div class="appointments">
+      <h6>Próximas citas</h6>
+
+      <!-- Shimmer loader -->
+      <ng-container *ngIf="cargando; else citasList">
+        <div class="appointment-card shimmer" *ngFor="let i of [1,2,3]">
+          <div class="line shimmer-bg w-50"></div>
+          <div class="line shimmer-bg w-75"></div>
+          <div class="line shimmer-bg w-25"></div>
+        </div>
+      </ng-container>
+
+      <ng-template #citasList>
+        <div *ngFor="let cita of appointments" class="appointment-card">
+          <h6>
+            #{{ cita.appointment_id }} {{ cita.nombre_paciente }}
+            <span class="badge" [ngClass]="getBadge(cita.status_appointment)">
+              {{ cita.status_appointment | uppercase }}
+            </span>
+          </h6>
+          <small>
+            {{ cita.date_appointment | date:'dd MMM yyyy - HH:mm':'es' }}
+          </small>
+
+          <!-- Botones de acción -->
+          <div>
+            <button *ngIf="cita.status_appointment === 'Registrada'" (click)="confirmarCita(cita.appointment_id)">
+              <i class="fas fa-check"></i>
+            </button>
+
+            <button *ngIf="cita.status_appointment === 'Confirmada'" (click)="marcarAtendida(cita.appointment_id)">
+              <i class="fas fa-user-check"></i>
+            </button>
+
+            <button *ngIf="cita.status_appointment === 'Confirmada'" (click)="marcarNoAsistio(cita.appointment_id)">
+              <i class="fas fa-user-times"></i>
+            </button>
+
+            <button *ngIf="cita.status_appointment !== 'Cancelada'" (click)="cancelarCita(cita.appointment_id)">
+              <i class="fas fa-ban"></i>
+            </button>
+
+            <a *ngIf="cita.status_appointment === 'Confirmada'" [href]="'/appointments?id=' + cita.appointment_id"
+              target="_blank">
+              <button class="btn btn-primary w-100 mt-1" type="button">
+                <i class="fas fa-calendar-alt"></i> Ver
+              </button>
+            </a>
+
+          </div>
+
+        </div>
+      </ng-template>
+    </div>
+
+
+    <div class="sidebar-footer mt-auto text-center small text-muted pt-3">
+      © {{ currentYear }} Doctor Adscare<br>
+      Tecnología impulsada por
+      <a href="https://aslsoft.com.mx" target="_blank" style="text-decoration:none;">
+        <img src="assets/logo_asl.png" alt="ASLSoft" style="height:20px; vertical-align:middle; margin-left:4px;">
+      </a>
+    </div>
+  </div>
+
+  <!-- Calendario grande -->
+  <app-week-calendar [currentDate]="selectedDate" (solicitarRefrescoPadre)="cargarProximasCitasCalendar()">
+  </app-week-calendar>
+</div>

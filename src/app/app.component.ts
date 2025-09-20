@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CalendarComponent } from './calendar/calendar/calendar.component';
-import { SplashScreenComponent } from './splash-screen/splash-screen.component';
+import { CalendarComponent } from './pages/calendar/calendar/calendar.component';
+import { SplashScreenComponent } from './pages/splash-screen/splash-screen.component';
 
 @Component({
   selector: 'app-root',
@@ -11,5 +11,5 @@ import { SplashScreenComponent } from './splash-screen/splash-screen.component';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'DrAds Expediente Angular';
+  title = 'Doctor Ads Expediente Angular';
 }

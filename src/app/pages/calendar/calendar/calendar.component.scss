@@ -187,3 +187,53 @@
     }
   }
 }
+
+.appointment-card button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  margin-right: 6px;
+  font-size: 16px;
+  color: #555;
+  transition: color 0.2s;
+}
+
+.appointment-card button:hover {
+  color: #000;
+}
+
+.appointment-card button:last-child {
+  margin-right: 0;
+}
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #f0f0f0;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.shimmer-bg {
+  height: 14px;
+  margin: 8px 0;
+  border-radius: 8px;
+  background: linear-gradient(
+    100deg,
+    #f0f0f0 40%,
+    #e0e0e0 50%,
+    #f0f0f0 60%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}

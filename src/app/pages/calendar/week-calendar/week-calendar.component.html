@@ -1,0 +1,393 @@
+<div class="calendar-container">
+  <div class="calendar-header">
+    <div class="left-controls">
+      <button (click)="goToToday()">Hoy</button>
+      <div class="navigation-icons">
+        <i class="fas fa-chevron-left" (click)="prevWeek()"></i>
+        <i class="fas fa-chevron-right" (click)="nextWeek()"></i>
+      </div>
+      <h3>{{ weekLabel }}</h3>
+    </div>
+
+    <div class="right-controls">
+      <button class="btn-agendar" (click)="abrirAgendarCita()">+ Agendar cita</button>
+    </div>
+  </div>
+
+  <div class="calendar-body">
+    <table class="calendar-table">
+      <thead>
+        <tr>
+          <th class="time-column"></th>
+          <th *ngFor="let day of weekDays" [class.today]="day.toDateString() === today.toDateString()">
+            {{ day | date:'EEE':'':'es' | uppercase }}<br>
+            <span class="date">{{ day.getDate() }}</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let slot of timeSlots; let row = index">
+          <!-- columna de horas -->
+          <td class="time-column">{{ slot.label }}</td>
+
+          <!-- columnas de días -->
+          <td *ngFor="let day of weekDays; let col = index" class="calendar-cell"
+            (click)="openDialog($event, row, col)">
+
+            <!-- SOLO en la PRIMERA fila dibujamos los eventos del día -->
+            <ng-container *ngIf="row === 0">
+              <div class="events-container">
+                <div *ngFor="let ev of getEventsForDay(day)" class="event-absolute" [style.top.px]="getEventTop(ev)"
+                  [style.height.px]="getEventHeight(ev)"
+                  [style.background]="ev.type === 'cita' ? ev.tag_color || '#004c80' : '#edeff2'"
+                  [style.color]="ev.type === 'cita' ? '#fff' : '#444'" (mouseenter)="openDetailPopup(ev, $event)"
+                  (click)="abrirDetalleCita(ev, $event)">
+
+                  <!-- si es bloqueo, ícono de candado -->
+                  <i *ngIf="ev.type === 'bloqueo'" class="fas fa-lock me-1"></i>
+
+                  <!-- si es cita nueva -->
+                  <span *ngIf="ev.type === 'cita' && ev.consultation_count === 0 && ev.id !== 0" class="badge-new">
+                    NEW
+                  </span>
+
+                  <div *ngIf="ev.type === 'cita'" class="event-time">
+                    {{ ev.formatted_time }}
+                  </div>
+
+                  {{ ev.title }}
+                </div>
+              </div>
+
+
+            </ng-container>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Popup -->
+  <!-- Sheet lateral -->
+  <div *ngIf="showPopup" class="event-sheet">
+
+    <!-- Overlay de cargando -->
+    <div *ngIf="guardando" class="overlay-loader">
+      <div class="bouncing-dots">
+        <span></span><span></span><span></span>
+      </div>
+      <p class="loader-text">Guardando...</p>
+    </div>
+
+    <div class="sheet-header">
+      <h6>Añadir evento</h6>
+      <button (click)="closePopup()">&times;</button>
+    </div>
+
+    <!-- Tabs -->
+    <div class="popup-tabs">
+      <button [class.active]="activeTab === 'cita'" (click)="activeTab = 'cita'">Cita</button>
+      <button [class.active]="activeTab === 'bloqueo'" (click)="activeTab = 'bloqueo'">Bloqueo</button>
+    </div>
+
+    <div class="sheet-body">
+      <!-- TAB CITA -->
+      <div *ngIf="activeTab === 'cita'">
+        <div class="form-group patient-group">
+          <label for="paciente">Paciente</label>
+
+          <!-- Buscador -->
+          <div class="input-row" *ngIf="!showCreatePatient && !editingEvent">
+            <input id="paciente" type="text" placeholder="Buscar por nombre o teléfono..."
+              [(ngModel)]="busquedaPaciente" (input)="buscarPacientes()"
+              [ngClass]="{'invalid-field': submitted && !pacienteSeleccionado}" />
+
+            <button type="button" class="btn-link" (click)="toggleCreatePatient($event)">
+              + Añadir
+            </button>
+          </div>
+
+          <!-- Mensaje de error -->
+          <small *ngIf="submitted && !pacienteSeleccionado && !showCreatePatient" class="error-msg">
+            Debes seleccionar un paciente
+          </small>
+
+          <!-- Lista de resultados -->
+          <div class="patient-results" *ngIf="!showCreatePatient && pacientesEncontrados.length > 0">
+            <div class="patient-item" *ngFor="let p of pacientesEncontrados" (click)="seleccionarPaciente(p)">
+              <div class="patient-id">#{{ p.id_paciente }}</div>
+              <div class="patient-info">
+                <div class="patient-name">{{ p.nombre_paciente }}</div>
+                <div class="patient-phone">{{ p.phone }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card paciente seleccionado -->
+          <div *ngIf="!showCreatePatient && pacienteSeleccionado" class="patient-card">
+            <div class="patient-header">
+              <h6 class="patient-name">{{ pacienteSeleccionado.nombre_paciente }}</h6>
+              <span class="patient-id">#{{ pacienteSeleccionado.id_paciente }}</span>
+            </div>
+            <div class="patient-details">
+              <p *ngIf="pacienteSeleccionado.phone">
+                <i class="fas fa-phone"></i> {{ pacienteSeleccionado.phone }}
+              </p>
+              <p *ngIf="pacienteSeleccionado.email">
+                <i class="fas fa-envelope"></i> {{ pacienteSeleccionado.email }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Formulario crear paciente -->
+          <div class="create-patient" *ngIf="showCreatePatient">
+            <h6>Nuevo paciente</h6>
+
+            <!-- Nombre -->
+            <div class="form-group">
+              <div class="input-icon" [ngClass]="{'invalid-field': submitted && !nuevoPaciente.nombre}">
+                <i class="fas fa-user"></i>
+                <input type="text" placeholder="Nombre completo *" [(ngModel)]="nuevoPaciente.nombre"
+                  name="nombrePaciente" />
+              </div>
+              <small *ngIf="submitted && !nuevoPaciente.nombre" class="error-msg">
+                Este campo es obligatorio
+              </small>
+            </div>
+
+            <!-- Fecha de nacimiento -->
+            <div class="form-group">
+              <div class="input-icon">
+                <i class="fas fa-calendar-alt"></i>
+                <input type="date" placeholder="dd/mm/aaaa" [(ngModel)]="nuevoPaciente.fecha_nacimiento"
+                  name="fechaNacimiento" />
+              </div>
+            </div>
+
+            <!-- Sexo -->
+            <div class="gender-group" [ngClass]="{'invalid-field': submitted && !nuevoPaciente.sexo}">
+              <label>Sexo *</label>
+              <div class="radio-options">
+                <label class="radio-option">
+                  <input type="radio" name="sexoPaciente" value="Hombre" [(ngModel)]="nuevoPaciente.sexo" />
+                  <i class="fas fa-mars"></i> Hombre
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="sexoPaciente" value="Mujer" [(ngModel)]="nuevoPaciente.sexo" />
+                  <i class="fas fa-venus"></i> Mujer
+                </label>
+              </div>
+              <small *ngIf="submitted && !nuevoPaciente.sexo" class="error-msg">
+                Este campo es obligatorio
+              </small>
+            </div>
+
+            <!-- Correo -->
+            <div class="form-group">
+              <div class="input-icon">
+                <i class="fas fa-envelope"></i>
+                <input type="email" placeholder="Correo electrónico" [(ngModel)]="nuevoPaciente.email"
+                  name="emailPaciente" />
+              </div>
+            </div>
+
+            <!-- Teléfono -->
+            <div class="form-group">
+              <div class="input-icon" [ngClass]="{'invalid-field': submitted && !nuevoPaciente.telefono}">
+                <i class="fas fa-phone"></i>
+                <input type="tel" placeholder="Teléfono (10 dígitos)" [(ngModel)]="nuevoPaciente.telefono"
+                  name="telefonoPaciente" />
+              </div>
+              <small *ngIf="submitted && !nuevoPaciente.telefono" class="error-msg">
+                Este campo es obligatorio
+              </small>
+            </div>
+
+            <!-- Botón cerrar -->
+            <button type="button" class="btn-link" (click)="toggleCreatePatient($event)">Cerrar</button>
+          </div>
+
+        </div>
+
+        <h6>Detalles de la cita</h6>
+        <div class="input-row">
+          <div class="form-group">
+            <label>Día *</label>
+            <input type="date" class="cita-date" [ngClass]="{'invalid-field': submitted && !selectedDate}"
+              [value]="selectedDate ? (selectedDate | date:'yyyy-MM-dd') : ''">
+            <small *ngIf="submitted && !selectedDate" class="error-msg">
+              Este campo es obligatorio
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label>Hora *</label>
+            <input type="time" class="cita-time" [ngClass]="{'invalid-field': submitted && !selectedDate}"
+              [value]="selectedDate ? (selectedDate | date:'HH:mm') : ''">
+            <small *ngIf="submitted && !selectedDate" class="error-msg">
+              Este campo es obligatorio
+            </small>
+          </div>
+        </div>
+        <div class="input-row">
+          <div class="form-group">
+            <label>Duración *</label>
+            <select [(ngModel)]="duracionSeleccionada" class="form-control"
+              [ngClass]="{'invalid-field': submitted && !duracionSeleccionada}">
+              <option *ngFor="let dur of duraciones" [value]="dur">{{ dur }} min</option>
+            </select>
+            <small *ngIf="submitted && !duracionSeleccionada" class="error-msg">
+              Este campo es obligatorio
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label>Etiqueta *</label>
+            <div class="tag-select" [ngClass]="{'invalid-field': submitted && !etiquetaSeleccionada}"
+              (click)="toggleTagDropdown()">
+
+              <!-- Selección -->
+              <div class="tag-selected" [ngStyle]="{
+        'background-color': selectedTag?.color || '#f1f3f4',
+        'color': getTextColor(selectedTag?.color || '#f1f3f4')
+      }">
+                {{ selectedTag?.tag_name || 'Seleccionar etiqueta' }}
+                <i class="fas fa-chevron-down"></i>
+              </div>
+
+              <!-- Dropdown -->
+              <div class="tag-dropdown" *ngIf="dropdownOpen">
+                <div *ngFor="let tag of etiquetas" class="tag-option" [ngStyle]="{
+             'background-color': normalizeColor(tag.color),
+             'color': getTextColor(tag.color)
+           }" (click)="selectTag(tag, $event)">
+                  {{ tag.tag_name }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Mensaje de error -->
+            <small *ngIf="submitted && !etiquetaSeleccionada" class="error-msg">
+              Este campo es obligatorio
+            </small>
+          </div>
+
+
+        </div>
+        <div class="form-group">
+          <label>Comentarios</label>
+          <textarea [(ngModel)]="comentarios"></textarea>
+        </div>
+      </div>
+
+      <!-- TAB BLOQUEO -->
+      <div *ngIf="activeTab === 'bloqueo'">
+        <div class="form-group">
+          <label>Nombre bloqueo *</label>
+          <input type="text" placeholder="Ej. Cirugía" [(ngModel)]="bloqueo.name" name="bloqueo_name"
+            [ngClass]="{'invalid-field': submitted && !bloqueo.name}">
+          <small *ngIf="submitted && !bloqueo.name" class="error-msg">
+            Este campo es obligatorio
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label>Fecha inicio *</label>
+          <div class="input-row">
+            <input type="date" [(ngModel)]="bloqueo.date_start" name="bloqueo_date_start"
+              [ngClass]="{'invalid-field': submitted && !bloqueo.date_start}">
+            <input type="time" [(ngModel)]="bloqueo.time_start" name="bloqueo_time_start"
+              [ngClass]="{'invalid-field': submitted && !bloqueo.time_start}">
+          </div>
+          <small *ngIf="submitted && (!bloqueo.date_start || !bloqueo.time_start)" class="error-msg">
+            Este campo es obligatorio
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label>Fecha fin *</label>
+          <div class="input-row">
+            <input type="date" [(ngModel)]="bloqueo.date_end" name="bloqueo_date_end"
+              [ngClass]="{'invalid-field': submitted && !bloqueo.date_end}">
+            <input type="time" [(ngModel)]="bloqueo.time_end" name="bloqueo_time_end"
+              [ngClass]="{'invalid-field': submitted && !bloqueo.time_end}">
+          </div>
+          <small *ngIf="submitted && (!bloqueo.date_end || !bloqueo.time_end)" class="error-msg">
+            Este campo es obligatorio
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <div class="sheet-footer actions">
+      <button class="btn-cancel" (click)="closePopup()">Cancelar</button>
+      <button class="btn-save" (click)="saveEvent(activeTab)">Guardar</button>
+    </div>
+  </div>
+
+  <div *ngIf="detailPopupVisible && selectedEvent" class="detail-popup" [style.top.px]="detailPopupPosition.y"
+    [style.left.px]="detailPopupPosition.x" (mouseleave)="closeDetailPopup()">
+
+    <!-- ====== CITA ====== -->
+    <ng-container *ngIf="selectedEvent.type === 'cita'">
+      <h6>{{ selectedEvent.name_patient }}</h6>
+
+      <p>
+        <i class="fas fa-envelope"></i> {{ selectedEvent.email_patient || 'Sin correo' }} <br>
+        <i class="fas fa-phone"></i> {{ selectedEvent.phone_patient || 'Sin teléfono' }} <br>
+        <i class="fas fa-id-card"></i> Folio: {{ selectedEvent.paciente }}
+      </p>
+
+      <strong>Detalles de la Cita:</strong><br>
+      <i class="fas fa-hashtag"></i> {{ selectedEvent.id }} <br>
+      <i class="fas fa-tag"></i> {{ selectedEvent.tag_name || 'Sin etiqueta' }} <br>
+      <i class="fas fa-calendar-alt"></i> <span [innerHTML]="selectedEvent.formatted_date_time"></span><br><br>
+      <i class="fas fa-hospital"></i> {{ selectedEvent.name_office }} <br>
+      <i class="fas fa-map-marker-alt"></i> {{ selectedEvent.address_office }}
+
+      <!-- Acciones -->
+      <div class="actions">
+        <button class="btn-action call" title="Llamar" (click)="llamarPaciente(selectedEvent)">
+          <i class="fas fa-phone"></i>
+        </button>
+        <button class="btn-action whatsapp" title="WhatsApp" (click)="whatsappPaciente(selectedEvent)">
+          <i class="fab fa-whatsapp"></i>
+        </button>
+        <button class="btn-action recetas" title="Recetas" (click)="abrirRecetas(selectedEvent)">
+          <i class="fas fa-file-medical"></i>
+        </button>
+
+        <button class="btn-action expediente" title="Expediente" (click)="abrirExpediente(selectedEvent)">
+          <i class="fas fa-folder-plus"></i>
+        </button>
+        <button class="btn-action edit" (click)="editEvent(selectedEvent)" title="Editar">
+          <i class="fas fa-edit"></i>
+        </button>
+        <button class="btn-action delete" (click)="deleteEvent(selectedEvent)" title="Eliminar">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+    </ng-container>
+
+    <!-- ====== BLOQUEO ====== -->
+    <ng-container *ngIf="selectedEvent.type === 'bloqueo'">
+      <h6><i class="fas fa-lock"></i> {{ selectedEvent.title }}</h6>
+      <p>
+        <i class="fas fa-calendar-alt"></i> Inicio: {{ selectedEvent.start | date:'fullDate' }}
+        {{ selectedEvent.start | date:'shortTime' }} <br>
+        <i class="fas fa-calendar-alt"></i> Fin: {{ selectedEvent.end | date:'fullDate' }}
+        {{ selectedEvent.end | date:'shortTime' }}
+      </p>
+
+      <!-- Acciones -->
+      <div class="actions">
+        <button class="btn-action edit" (click)="editEvent(selectedEvent)" title="Editar">
+          <i class="fas fa-edit"></i>
+        </button>
+        <button class="btn-action delete" (click)="deleteEvent(selectedEvent)" title="Eliminar">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </ng-container>
+  </div>

@@ -1,4 +1,19 @@
-body {
+
+// Custom Theming for Angular Material
+// For more information: https://material.angular.dev/guide/theming
+@use '@angular/material' as mat;
+
+html {
+  @include mat.theme((
+    color: (
+      theme-type: light,
+      primary: mat.$azure-palette,
+      tertiary: mat.$blue-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+}body {
   font-family: "Poppins", sans-serif !important;
   margin: 0;
   padding: 0;
@@ -30,3 +45,6 @@ body {
   text-align: center;
   margin-bottom: 15px;
 }
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
