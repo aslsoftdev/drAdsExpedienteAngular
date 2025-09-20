@@ -12,6 +12,7 @@ export class AuthService {
   constructor(private http: HttpClient) {}
 
   obtenerUUID(): string | null {
+    return "b52b2b8d-0328-11ef-b86a-6a3d6524d860";
     return localStorage.getItem('uuid');
   }
 

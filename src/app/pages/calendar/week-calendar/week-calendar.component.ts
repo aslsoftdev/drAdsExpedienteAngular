@@ -770,41 +770,6 @@ export class WeekCalendarComponent implements OnChanges {
       });
     }
   }
-
-  llamarPaciente(ev: EventData) {
-    if (ev.phone_patient) {
-      window.open(`tel:${ev.phone_patient}`, "_self"); 
-    } else {
-      alert("Este paciente no tiene teléfono registrado");
-    }
-  }
-
-  whatsappPaciente(ev: EventData) {
-    if (ev.phone_patient) {
-      const phone = ev.phone_patient.replace(/\D/g, ""); // limpiar a solo números
-      window.open(`https://wa.me/52${phone}`, "_blank"); 
-    } else {
-      alert("Este paciente no tiene número de WhatsApp registrado");
-    }
-  }
-
-  abrirRecetas(ev: EventData) {
-    if (ev.id) {
-      // 👉 Ajusta esta URL según tu sistema real de expedientes
-      window.open(`/admin/patients.prescriptions?id=${ev.id}`, "_blank");
-    } else {
-      alert("No se encontró el expediente de este paciente");
-    }
-  }
-
-  abrirExpediente(ev: EventData) {
-    if (ev.id) {
-      // 👉 Ajusta esta URL según tu sistema real de expedientes
-      window.open(`/admin/patients?id=${ev.id}`, "_blank");
-    } else {
-      alert("No se encontró el expediente de este paciente");
-    }
-  }
   
   buscarPacientes() {
     if (this.busquedaPaciente.trim().length < 2) {
@@ -880,9 +845,44 @@ export class WeekCalendarComponent implements OnChanges {
     event.stopPropagation(); 
 
     if (ev.type === 'cita') {
-      window.open(`hadmin/appointments?id=${ev.id}`, "_blank"); 
+      window.open(`/admin/appointments?id=${ev.id}`, "_blank"); 
     } else {
       
+    }
+  }
+
+  llamarPaciente(ev: EventData) {
+    if (ev.phone_patient) {
+      window.open(`tel:${ev.phone_patient}`, "_self"); 
+    } else {
+      alert("Este paciente no tiene teléfono registrado");
+    }
+  }
+
+  whatsappPaciente(ev: EventData) {
+    if (ev.phone_patient) {
+      const phone = ev.phone_patient.replace(/\D/g, ""); // limpiar a solo números
+      window.open(`https://wa.me/52${phone}`, "_blank"); 
+    } else {
+      alert("Este paciente no tiene número de WhatsApp registrado");
+    }
+  }
+
+  abrirRecetas(ev: EventData) {
+    if (ev.id) {
+      // 👉 Ajusta esta URL según tu sistema real de expedientes
+      window.open(`/admin/patients.prescriptions?id=${ev.paciente}`, "_blank");
+    } else {
+      alert("No se encontró el expediente de este paciente");
+    }
+  }
+
+  abrirExpediente(ev: EventData) {
+    if (ev.id) {
+      // 👉 Ajusta esta URL según tu sistema real de expedientes
+      window.open(`/admin/patients?id=${ev.paciente}`, "_blank");
+    } else {
+      alert("No se encontró el expediente de este paciente");
     }
   }
 
