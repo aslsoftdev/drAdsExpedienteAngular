@@ -24,6 +24,7 @@ interface EventData {
 
   start: Date;
   end: Date;
+  medio_contacto: number;
 
   formatted_date_time?: string;
   formatted_time?: string;
@@ -137,6 +138,8 @@ export class WeekCalendarComponent implements OnChanges {
 
   offices: any[] = [];
   selectedOfficeId: number | null = null;
+  mediosContacto: Array<{ id_medio_contacto: number; nombre_medio: string }> = [];
+  medioContactoSeleccionado: number | null = null;
 
   constructor(private appointmentService: AppointmentService, 
               private dialog: MatDialog ) {}
@@ -150,6 +153,7 @@ export class WeekCalendarComponent implements OnChanges {
     this.cargarEventos();
     this.cargarEtiquetas();
     this.cargarConsultorios();
+    this.cargarMediosContacto();
   }
 
   notificarPadre() {
@@ -182,6 +186,19 @@ export class WeekCalendarComponent implements OnChanges {
     });
   }
 
+  cargarMediosContacto() {
+    this.appointmentService.getMediosContacto().subscribe({
+      next: (res) => {
+        if (res?.status && Array.isArray(res.medios_contacto)) {
+          this.mediosContacto = res.medios_contacto;
+        } else {
+          this.mediosContacto = [];
+        }
+      },
+      error: () => this.mediosContacto = []
+    });
+  }
+
   cargarEventos() {
     this.appointmentService.getCalendario().subscribe({
       next: (data) => {
@@ -209,6 +226,7 @@ export class WeekCalendarComponent implements OnChanges {
             phone_patient: ev.phone_patient || "",
             patient_uuid: ev.patient_uuid || "",
             comments: ev.comments || "",
+            medio_contacto: ev.medio_contacto || 0,
 
             tag_id: ev.tag_id || null,
             tag_color: ev.tag_color || (ev.id_block ? "#edeff2" : "#004c80"),
@@ -404,6 +422,10 @@ export class WeekCalendarComponent implements OnChanges {
 
     // 🔹 Resetear consultorio seleccionado (si aplica)
     this.selectedOfficeId = this.offices.length > 0 ? this.offices[0].office_id : null;
+
+    this.etiquetaSeleccionada = null;
+    this.selectedTag = null;
+    this.medioContactoSeleccionado = null;
   }
 
 
@@ -466,7 +488,8 @@ export class WeekCalendarComponent implements OnChanges {
         !valido ||
         !this.selectedDate ||
         !this.duracionSeleccionada ||
-        !this.etiquetaSeleccionada
+        !this.etiquetaSeleccionada ||
+        !this.medioContactoSeleccionado
       ) {
         return;
       }
@@ -481,6 +504,7 @@ export class WeekCalendarComponent implements OnChanges {
         hora_cita: this.selectedDate ? this.selectedDate.toTimeString().slice(0,5) : '',
         duration: this.duracionSeleccionada,
         tag: this.etiquetaSeleccionada,
+        medio_contacto: this.medioContactoSeleccionado,
         comments: this.comentarios?.trim() || '',
         new_patient: this.showCreatePatient
         ? {
@@ -663,6 +687,10 @@ export class WeekCalendarComponent implements OnChanges {
 
       // comentarios
       this.comentarios = ev.comments || '';
+
+      console.log(ev);
+
+      this.medioContactoSeleccionado = (ev.medio_contacto ?? null);
     }
 
     if (ev.type === 'bloqueo') {

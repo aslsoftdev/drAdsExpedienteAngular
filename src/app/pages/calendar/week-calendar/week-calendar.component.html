@@ -271,9 +271,23 @@
               Este campo es obligatorio
             </small>
           </div>
-
-
         </div>
+
+        <!-- Medio de Contacto (obligatorio) -->
+        <div class="form-group">
+          <label>Medio de contacto *</label>
+          <select [(ngModel)]="medioContactoSeleccionado" class="form-control"
+            [ngClass]="{'invalid-field': submitted && !medioContactoSeleccionado}">
+            <option [ngValue]="null">— Seleccionar —</option>
+            <option *ngFor="let m of mediosContacto" [ngValue]="m.id_medio_contacto">
+              {{ m.nombre_medio }}
+            </option>
+          </select>
+          <small *ngIf="submitted && !medioContactoSeleccionado" class="error-msg">
+            Este campo es obligatorio
+          </small>
+        </div>
+        
         <div class="form-group">
           <label>Comentarios</label>
           <textarea [(ngModel)]="comentarios"></textarea>

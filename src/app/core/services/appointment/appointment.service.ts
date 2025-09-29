@@ -92,4 +92,10 @@ export class AppointmentService {
     );
   }
 
+  getMediosContacto(): Observable<any> {
+    const uuid = this.getUuid();
+    return this.http.get<any>(
+      `${API_ENDPOINTS.getMediosContacto}?uuid=${uuid}`
+    );
+  }
 }

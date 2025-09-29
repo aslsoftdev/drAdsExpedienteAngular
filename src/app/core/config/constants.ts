@@ -11,4 +11,5 @@ export const API_ENDPOINTS = {
   buscarPaciente: `${API_BASE_URL}/api.buscar_paciente.php`,
   guardarCita: `${API_BASE_URL}/api.guardar_cita.php`,
   getConsultorios: `${API_BASE_URL}/api.get_consultorios.php`,
+  getMediosContacto: `${API_BASE_URL}/api.get_medios_contacto.php`,
 };
