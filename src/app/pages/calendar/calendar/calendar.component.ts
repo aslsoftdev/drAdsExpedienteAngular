@@ -208,6 +208,6 @@ export class CalendarComponent implements OnInit {
 
   logout() {
     localStorage.clear(); // borrar uuid, roles, etc.
-    window.location.href = '/admin/logout'; // fuerza el PHP logout
+    window.location.href = '/admin/logout'; 
   }
 }
