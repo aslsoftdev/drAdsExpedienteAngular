@@ -873,7 +873,12 @@ export class WeekCalendarComponent implements OnChanges {
     event.stopPropagation(); 
 
     if (ev.type === 'cita') {
-      window.open(`/admin/appointments?id=${ev.id}`, "_blank"); 
+
+      if(ev.consultation_count == 0){
+        window.open(`/admin/patients?id=${ev.paciente}`, "_blank"); 
+      }else{
+        window.open(`/admin/appointments?id=${ev.id}`, "_blank"); 
+      }
     } else {
       
     }
