@@ -141,6 +141,12 @@ export class WeekCalendarComponent implements OnChanges {
   mediosContacto: Array<{ id_medio_contacto: number; nombre_medio: string }> = [];
   medioContactoSeleccionado: number | null = null;
 
+  readonly ZONA_HORARIA = 'America/Chihuahua';
+
+  cita_dia  = ''; // 'YYYY-MM-DD'
+  cita_hora = ''; // 'HH:mm'
+  
+
   constructor(private appointmentService: AppointmentService, 
               private dialog: MatDialog ) {}
 
@@ -371,6 +377,9 @@ export class WeekCalendarComponent implements OnChanges {
       date_end: this.formatDate(this.endDateValue),
       time_end: this.formatTime(this.endDateValue)
     };
+
+    this.cita_dia  = this.formatDate(this.selectedDate);
+    this.cita_hora = this.formatTime(this.selectedDate);
     
     this.closeDetailPopup();
   }
@@ -500,8 +509,8 @@ export class WeekCalendarComponent implements OnChanges {
         id: this.editingEvent?.id || 0,
         patient_id: this.pacienteSeleccionado?.id_paciente || 0,
         office_id: this.selectedOfficeId,
-        dia_cita: this.selectedDate ? this.selectedDate.toISOString().split('T')[0] : '',
-        hora_cita: this.selectedDate ? this.selectedDate.toTimeString().slice(0,5) : '',
+        dia_cita: this.cita_dia ? this.aFechaLocalYMD(this.cita_dia) : '',
+        hora_cita: this.cita_hora ? this.aHoraLocalHM(this.cita_hora) : '',
         duration: this.duracionSeleccionada,
         tag: this.etiquetaSeleccionada,
         medio_contacto: this.medioContactoSeleccionado,
@@ -918,5 +927,64 @@ export class WeekCalendarComponent implements OnChanges {
       alert("No se encontró el expediente de este paciente");
     }
   }
+
+ /** Devuelve YYYY-MM-DD en local; acepta Date o string. */
+aFechaLocalYMD(fecha: string | Date, tz: string = this.ZONA_HORARIA): string {
+  if (!fecha) return '';
+
+  let d: Date;
+
+  if (typeof fecha === 'string') {
+    // Caso: viene de <input type="date"> => "YYYY-MM-DD"
+    if (/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+      const [y, m, dd] = fecha.split('-').map(Number);
+      // Fijamos mediodía local para evitar bordes de DST en medianoche
+      d = new Date(y, m - 1, dd, 12, 0, 0, 0);
+    } else {
+      // ISO u otro formato aceptado por Date
+      d = new Date(fecha);
+    }
+  } else {
+    d = fecha;
+  }
+
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: tz,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(d); // YYYY-MM-DD
+}
+
+/** Devuelve HH:mm en local; acepta Date o string. */
+aHoraLocalHM(fecha: string | Date, tz: string = this.ZONA_HORARIA): string {
+  if (!fecha) return '';
+
+  // Si ya es "HH:mm" (de <input type="time">), regresa tal cual
+  if (typeof fecha === 'string' && /^\d{2}:\d{2}$/.test(fecha)) {
+    return fecha;
+  }
+
+  const d = typeof fecha === 'string' ? new Date(fecha) : fecha;
+
+  const partes = new Intl.DateTimeFormat('es-MX', {
+    timeZone: tz,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(d);
+
+  const h = partes.find(p => p.type === 'hour')?.value ?? '00';
+  const m = partes.find(p => p.type === 'minute')?.value ?? '00';
+  return `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
+}
+
+/** (Extra) Combina "YYYY-MM-DD" + "HH:mm" a un Date local. */
+combinarDiaHora(dia: string, hora: string): Date | null {
+  if (!dia || !hora) return null;
+  const [y, m, dd] = dia.split('-').map(Number);
+  const [hh, mm] = hora.split(':').map(Number);
+  return new Date(y, m - 1, dd, hh, mm, 0, 0); // Local
+}
 
 }

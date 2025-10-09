@@ -213,8 +213,7 @@
         <div class="input-row">
           <div class="form-group">
             <label>Día *</label>
-            <input type="date" class="cita-date" [ngClass]="{'invalid-field': submitted && !selectedDate}"
-              [value]="selectedDate ? (selectedDate | date:'yyyy-MM-dd') : ''">
+            <input type="date" class="cita-date" name="cita_dia" [(ngModel)]="cita_dia" [ngClass]="{'invalid-field': submitted && !cita_dia}">
             <small *ngIf="submitted && !selectedDate" class="error-msg">
               Este campo es obligatorio
             </small>
@@ -222,8 +221,7 @@
 
           <div class="form-group">
             <label>Hora *</label>
-            <input type="time" class="cita-time" [ngClass]="{'invalid-field': submitted && !selectedDate}"
-              [value]="selectedDate ? (selectedDate | date:'HH:mm') : ''">
+            <input type="time" class="cita-time" name="cita_hora" [(ngModel)]="cita_hora" [ngClass]="{'invalid-field': submitted && !cita_hora}">
             <small *ngIf="submitted && !selectedDate" class="error-msg">
               Este campo es obligatorio
             </small>
